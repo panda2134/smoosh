@@ -5,6 +5,12 @@ FROM ocaml/opam2:debian-9
 # TODO this still isn't silencing it :(
 ENV DEBIAN_FRONTEND=noninteractive
 
+RUN sudo tee /etc/apt/sources.list <<EOF
+deb http://archive.debian.org/debian/ stretch main contrib non-free
+deb http://archive.debian.org/debian/ stretch-proposed-updates main contrib non-free
+deb http://archive.debian.org/debian-security stretch/updates main contrib non-free
+EOF
+
 # we frontload installation so that things that inherit from us don't need network access
 # we also (inadvisedly) do an update, but we'll ask for particular shell versions
 RUN sudo apt-get update
@@ -31,13 +37,15 @@ RUN sudo apt-get install -y gawk
 
 # camlp4 won't work in 4.08 right now 2019-06-18
 RUN opam switch 4.07
+RUN opam pin add ocamlgraph 'https://github.com/backtracking/ocamlgraph.git#v1.8.8'
 
 # make sure we have ocamlfind and ocamlbuild
 RUN opam install ocamlfind ocamlbuild
 
 # set up FFI for libdash; num library for lem; extunix for shell syscalls
-RUN opam pin add ctypes 0.11.5
+RUN opam pin add ctypes-foreign 0.4.0
 RUN opam install ctypes-foreign
+RUN opam pin add ctypes 0.17.1
 RUN opam install num
 RUN opam install extunix
 
